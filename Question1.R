@@ -44,13 +44,14 @@ attach(dat3)
 
 
 
-#
+#Plotting probabilities with new data 
 attach(dat3)
-
+#creating ages vector
 age_vals <- seq(from = min(dat3$Age),
                 to = max(dat3$Age),
                 by = 1)
 
+#retrieving mode for relevant features 
 gender.mode <- as.numeric(names(which.max(table(dat3$Gender)))) #finding mode
 Liver.Diagnosis.mode <- as.numeric(names(which.max(table(dat3$Liver.Diagnosis))))
 Recurrence.of.disease.mode <- as.numeric(names(which.max(table(dat3$Recurrence.of.disease))))
@@ -60,21 +61,46 @@ Renal.Failure.mode <- as.numeric(names(which.max(table(dat3$Renal.Failure))))
 Depression.mode <- as.numeric(names(which.max(table(dat3$Depression))))
 Corticoid.mode <- as.numeric(names(which.max(table(dat3$Corticoid))))
 
+#generating trial dataframe of new data with ages and features 
 trial_data <- data.frame(
-  age = age_vals,
-  gender_mode = rep(gender.mode, length(age_vals)),
-  Liver.Diagnosis_mode = rep(Liver.Diagnosis.mode, length(age_vals)),
-  Recurrence.of.disease_mode = rep(Recurrence.of.disease.mode, length(age_vals)),
-  Rejection.graft.dysfunction_mode = rep(Rejection.graft.dysfunction.mode, length(age_vals)),
-  Any.fibrosis_mode = rep(Any.fibrosis.mode, length(age_vals)),
-  Renal.Failure_mode = rep(Renal.Failure.mode, length(age_vals)),
-  Depression_mode = rep(Depression.mode, length(age_vals)),
-  Corticoid_mode = rep(Corticoid.mode, length(age_vals))
+  Age = age_vals,
+  Gender = rep(gender.mode, length(age_vals)),
+  Liver.Diagnosis = rep(Liver.Diagnosis.mode, length(age_vals)),
+  Recurrence.of.disease = rep(Recurrence.of.disease.mode, length(age_vals)),
+  Rejection.graft.dysfunction = rep(Rejection.graft.dysfunction.mode, length(age_vals)),
+  Any.fibrosis = rep(Any.fibrosis.mode, length(age_vals)),
+  Renal.Failure = rep(Renal.Failure.mode, length(age_vals)),
+  Depression = rep(Depression.mode, length(age_vals)),
+  Corticoid = rep(Corticoid.mode, length(age_vals))
 )
-#model has only age as numeric, removed other numeric variables: BMI + Time.from.transplant
+
+#experimenting with lgm models 
+#currently: model has only age as numeric, removed other numeric variables: BMI + Time.from.transplant
 mymodel_essbinary_age <- glm(ESSBinary ~ Age+Gender+Liver.Diagnosis+Recurrence.of.disease+Rejection.graft.dysfunction+Any.fibrosis+Renal.Failure+Depression+Corticoid, 
                data = dat3, family = binomial)
 
+#can make another model by subtracting/adding variables 
+mymodel_essbinary_age_2 <- glm(ESSBinary ~ Age+Renal.Failure+Depression+Corticoid, 
+                             data = dat3, family = binomial)
+
+#ran cho-sq test to compare the two models generated 
+anova(mymodel_essbinary_age, mymodel_essbinary_age_2, test="Chisq")
+
+#this vector will have predictions from the provided trial data for ESSBinary scale 
 my_preds <- predict(mymodel_essbinary_age, newdata = trial_data, type = "response")
 
+#plotting graph 
 plot(age_vals,my_preds,type = "l",xlab = "Age (yrs)",ylab = "Predicted probabilities")
+
+
+
+
+
+#alternative way of doing this for ESSBinary scale: -- I think this can be our main strategy? different ANOVAs?
+attach(dat3)
+mymodel_essbinary_1 <- glm(ESSBinary ~ Age+BMI+Time.from.transplant+Gender+Liver.Diagnosis+Recurrence.of.disease+Rejection.graft.dysfunction+Any.fibrosis+Renal.Failure+Depression+Corticoid, 
+                             data = dat3, family = binomial)
+#removed 
+mymodel_essbinary_2 <- glm(ESSBinary ~ Age+BMI+Time.from.transplant+Gender+Liver.Diagnosis+Recurrence.of.disease+Rejection.graft.dysfunction+Any.fibrosis+Renal.Failure+Depression+Corticoid, 
+                           data = dat3, family = binomial)
+
