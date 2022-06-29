@@ -1,6 +1,5 @@
 #Question1
 
-
 ### Data cleaning
 library(dplyr)
 dat <- read.csv("project_data.csv")
@@ -35,13 +34,6 @@ dat3$AISBinary %>% table() %>% prop.table()
 dat3$Berlin.Sleepiness.Scale %>% table() %>% prop.table()
 
 attach(dat3)
-
-
-
-
-
-
-
 
 
 #Plotting probabilities with new data 
@@ -96,10 +88,43 @@ plot(age_vals,my_preds,type = "l",xlab = "Age (yrs)",ylab = "Predicted probabili
 
 
 
-#alternative way of doing this for ESSBinary scale: -- I think this can be our main strategy? different ANOVAs?
+#Alternative way of doing this for ESSBinary scale: -- I think this can be our main strategy? different ANOVAs?
 attach(dat3)
+
+#Generating Boxplots for ESSBinary to see which categorical predictors are informative, then will use these predictors in modelling
+boxplot(formula = Gender ~ ESSBinary, data=dat3) 
+boxplot(formula = Liver.Diagnosis~ ESSBinary, data=dat3)
+boxplot(formula = Recurrence.of.disease ~ESSBinary, data=dat3)
+boxplot(formula = Rejection.graft.dysfunction~ ESSBinary, data=dat3)
+boxplot(formula = Any.fibrosis~ ESSBinarys, data=dat3)
+boxplot(formula = Renal.Failure~ ESSBinary, data=dat3)
+boxplot(formula = Depression ~ESSBinary, data=dat3)
+boxplot(formula = Corticoid ~ESSBinary, data=dat3)
+
+dat3 <- na.omit(dat3)
+
+#Corticoid is significant for ESSBinary
 mymodel_essbinary_1 <- glm(ESSBinary ~ Age+BMI+Time.from.transplant+Gender+Liver.Diagnosis+Recurrence.of.disease+Rejection.graft.dysfunction+Any.fibrosis+Renal.Failure+Depression+Corticoid, 
-                             data = dat3, family = binomial)
+                             data = dat3, family = binomial) 
+summary(mymodel_essbinary_1)
+
+#Gender and Depression for PSGQBinary
+mymodel_PSGQBinary <- glm(PSGQBinary ~ Age+BMI+Time.from.transplant+Gender+Liver.Diagnosis+Recurrence.of.disease+Rejection.graft.dysfunction+Any.fibrosis+Renal.Failure+Depression+Corticoid, 
+                           data = dat3, family = binomial) 
+summary(mymodel_PSGQBinary)
+
+# AISBinary - Age and Depression and Corticoid
+mymodel_AISBinary <- glm(AISBinary ~ Age+BMI+Time.from.transplant+Gender+Liver.Diagnosis+Recurrence.of.disease+Rejection.graft.dysfunction+Any.fibrosis+Renal.Failure+Depression+Corticoid, 
+                          data = dat3, family = binomial) 
+summary(mymodel_AISBinary)
+
+#Berlin.Sleepiness.Scale - BMI 
+mymodel_Berlin.Sleepiness.Scale <- glm(Berlin.Sleepiness.Scale ~ Age+BMI+Time.from.transplant+Gender+Liver.Diagnosis+Recurrence.of.disease+Rejection.graft.dysfunction+Any.fibrosis+Renal.Failure+Depression+Corticoid, 
+                         data = dat3, family = binomial) 
+summary(mymodel_Berlin.Sleepiness.Scale)
+
+
+anova(mymodel_essbinary_1, mymodel_essbinary_2, test="Chisq")
 #removed 
 mymodel_essbinary_2 <- glm(ESSBinary ~ Age+BMI+Time.from.transplant+Gender+Liver.Diagnosis+Recurrence.of.disease+Rejection.graft.dysfunction+Any.fibrosis+Renal.Failure+Depression+Corticoid, 
                            data = dat3, family = binomial)
