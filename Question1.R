@@ -2,8 +2,6 @@
 
 
 ### Data cleaning
-
-
 library(dplyr)
 dat <- read.csv("project_data.csv")
 
@@ -23,53 +21,6 @@ dat3 <- dat2 %>%
     !is.na(Berlin.Sleepiness.Scale)
   )
 
-dat3 <- dat3 %>%
-  filter(
-    !is.na(Age),
-    !is.na(Gender),
-    !is.na(BMI),
-    !is.na(Time.from.transplant),
-    !is.na(Liver.Diagnosis),!is.na(Recurrence.of.disease),
-    !is.na(Rejection.graft.dysfunction),
-    !is.na(Any.fibrosis),!is.na(Renal.Failure),
-    !is.na(Depression),
-    !is.na(Corticoid)
-  )
-
-
-mymodel <-
-  glm(
-    ESSBinary ~ Age + Gender + BMI + Time.from.transplant + Liver.Diagnosis +
-      Recurrence.of.disease + Rejection.graft.dysfunction + Any.fibrosis + Renal.Failure +
-      Depression + Corticoid ,
-    data = dat3,
-    family = binomial
-  )
-
-# let's take a look
-mynewdata2
-mypreds <-
-  predict(mymodel2, newdata = mynewdata2, type = "response")
-
-plot(age.vals,
-     mypreds,
-     type = "l",
-     xlab = "Age (yrs)",
-     ylab = "Predicted probabilities")
-
-
-mymodel_2 <-
-  glm(
-    PSGQBinary ~ Age + Gender + BMI + Time.from.transplant + Liver.Diagnosis +
-      Recurrence.of.disease +
-      Rejection.graft.dysfunction + Any.fibrosis + Renal.Failure +
-      Depression + Corticoid ,
-    data = dat3,
-    family = binomial
-  )
-
-anova(mymodel, mymodel_2)
-
 
 #Prevalence for ESSBinary
 dat3$ESSBinary %>% table() %>% prop.table()
@@ -82,36 +33,48 @@ dat3$AISBinary %>% table() %>% prop.table()
 
 #Prevalence for AISBinary
 dat3$Berlin.Sleepiness.Scale %>% table() %>% prop.table()
+
 attach(dat3)
 
 
-#BMI, Age, Time.Elapsed
+
+
+
+
+
+
+
+#
+attach(dat3)
+
 age_vals <- seq(from = min(dat3$Age),
                 to = max(dat3$Age),
                 by = 1)
 
-gender.mode <- names(which.max(table(dat3$Gender))) #finding mode
-Liver.Diagnosis.mode <-
-  names(which.max(table(dat3$Liver.Diagnosis)))
-Recurrence.of.disease.mode <-
-  names(which.max(table(dat3$Recurrence.of.disease)))
-Rejection.graft.dysfunction.mode <-
-  names(which.max(table(dat3$Rejection.graft.dysfunction)))
-Any.fibrosis.mode <- names(which.max(table(dat3$Any.fibrosis.mode)))
-Renal.Failure.mode <- names(which.max(table(dat3$Renal.Failure)))
-Depression.mode <- names(which.max(table(dat3$Depression)))
-Corticoid.mode <- names(which.max(table(dat3$Corticoid)))
-
-
+gender.mode <- as.numeric(names(which.max(table(dat3$Gender)))) #finding mode
+Liver.Diagnosis.mode <- as.numeric(names(which.max(table(dat3$Liver.Diagnosis))))
+Recurrence.of.disease.mode <- as.numeric(names(which.max(table(dat3$Recurrence.of.disease))))
+Rejection.graft.dysfunction.mode <- as.numeric(names(which.max(table(dat3$Rejection.graft.dysfunction))))
+Any.fibrosis.mode <- as.numeric(names(which.max(table(dat3$Any.fibrosis))))
+Renal.Failure.mode <- as.numeric(names(which.max(table(dat3$Renal.Failure))))
+Depression.mode <- as.numeric(names(which.max(table(dat3$Depression))))
+Corticoid.mode <- as.numeric(names(which.max(table(dat3$Corticoid))))
 
 trial_data <- data.frame(
   age = age_vals,
-  gender_mode = rep(dat3$gender.mode, length(age_vals)),
-  Liver.Diagnosis_mode = rep(dat3$Liver.Diagnosis.mode, length(age_vals)),
-  Recurrence.of.disease_mode = rep(dat3$Recurrence.of.disease.mode, length(age_vals)),
-  Rejection.graft.dysfunction_mode = rep(dat3$Rejection.graft.dysfunction.mode, length(age_vals)),
-  Any.fibrosis_mode = rep(dat3$Any.fibrosis.mode, length(age_vals)),
-  Renal.Failure_mode = rep(dat3$Renal.Failure.mode, length(age_vals)),
-  Depression_mode = rep(dat3$Depression.mode, length(age_vals)),
-  Corticoid_mode = rep(dat3$Corticoid.mode, length(age_vals))
+  gender_mode = rep(gender.mode, length(age_vals)),
+  Liver.Diagnosis_mode = rep(Liver.Diagnosis.mode, length(age_vals)),
+  Recurrence.of.disease_mode = rep(Recurrence.of.disease.mode, length(age_vals)),
+  Rejection.graft.dysfunction_mode = rep(Rejection.graft.dysfunction.mode, length(age_vals)),
+  Any.fibrosis_mode = rep(Any.fibrosis.mode, length(age_vals)),
+  Renal.Failure_mode = rep(Renal.Failure.mode, length(age_vals)),
+  Depression_mode = rep(Depression.mode, length(age_vals)),
+  Corticoid_mode = rep(Corticoid.mode, length(age_vals))
 )
+#model has only age as numeric, removed other numeric variables: BMI + Time.from.transplant
+mymodel_essbinary_age <- glm(ESSBinary ~ Age+Gender+Liver.Diagnosis+Recurrence.of.disease+Rejection.graft.dysfunction+Any.fibrosis+Renal.Failure+Depression+Corticoid, 
+               data = dat3, family = binomial)
+
+my_preds <- predict(mymodel_essbinary_age, newdata = trial_data, type = "response")
+
+plot(age_vals,my_preds,type = "l",xlab = "Age (yrs)",ylab = "Predicted probabilities")
