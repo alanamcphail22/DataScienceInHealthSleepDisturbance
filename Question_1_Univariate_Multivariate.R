@@ -32,6 +32,7 @@ dat3 <- dat3 %>%
     !is.na(Corticoid)
   )
 
+##univariate and then multivariate test
 #bmi 
 bmi_model <- glm(ESSBinary ~ BMI, data = dat3, family=binomial)
 summary(bmi_model) #
@@ -78,12 +79,47 @@ Corticoid <- glm(ESSBinary ~ Corticoid, data = dat3, family=binomial)
 summary(Corticoid) #KEEP
 
 
-mymodel_essbinary_1 <- glm(ESSBinary ~ Gender + Rejection.graft.dysfunction + Any.fibrosis+Corticoid, 
-                           data = dat3, family = binomial) 
-summary(mymodel_essbinary_1)
-#final model shows corticoid as being significant
+mymodel_essbinary_all <- glm(ESSBinary ~ 
+                             Age + BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
+                             Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease + Renal.Failure+
+                             Depression, data = dat3, family = binomial) 
+
+mymodel_essbinary_without_corticoid <- glm(ESSBinary ~ 
+                               Age + BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
+                               Any.fibrosis + Liver.Diagnosis + Recurrence.of.disease + Renal.Failure+
+                               Depression, data = dat3, family = binomial) 
 
 
+model_all <- glm(ESSBinary ~ Age + BMI + Gender + Time.from.transplant + Liver.Diagnosis + Recurrence.of.disease + 
+            Rejection.graft.dysfunction + Any.fibrosis + Renal.Failure + 
+            Depression + Corticoid, data = dat3)
+model_without_corticoid <- glm(ESSBinary ~ Age + BMI + Gender + Time.from.transplant + Liver.Diagnosis + Recurrence.of.disease + 
+                   Rejection.graft.dysfunction + Any.fibrosis + Renal.Failure + 
+                   Depression, data = dat3)
+models_all_sig_wogender <- glm(ESSBinary ~Age + Rejection.graft.dysfunction + Any.fibrosis + Corticoid, data = dat3, family = binomial)
+models_all_sig_wo_corticoid <- glm(ESSBinary ~ 
+                                     Age + Gender + Rejection.graft.dysfunction + Any.fibrosis, data = dat3, family = binomial)
+AIC(model_all)
+AIC(model_without_corticoid)
+AIC(models_all_sig_wogender)
+AIC(models_all_sig_wo_corticoid)
+AIC(models_all_sig)
+
+summary(model_all)
+anova(model_all,model_without_corticoid, test="Chisq")
 
 
+models_all_sig <- glm(ESSBinary ~ 
+                        Age + Gender + Rejection.graft.dysfunction + Any.fibrosis + Corticoid, data = dat3, family = binomial) 
+
+models_all_sig_wo_corticoid <- glm(ESSBinary ~ 
+                        Age + Gender + Rejection.graft.dysfunction + Any.fibrosis, data = dat3, family = binomial)
+
+models_all_sig_wogender <- glm(ESSBinary ~ 
+                                  Age + Rejection.graft.dysfunction + Any.fibrosis + Corticoid, data = dat3, family = binomial)
+#anova shows sig 
+anova(mymodel_essbinary_all,mymodel_essbinary_without_corticoid,test="Chisq")
+anova(models_all_sig,models_all_sig_wo_corticoid,test="Chisq")
+
+---
 
