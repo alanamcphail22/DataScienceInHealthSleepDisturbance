@@ -43,6 +43,10 @@ dat3$Renal.Failure <- as.factor(dat3$Renal.Failure)
 dat3$Depression <- as.factor(dat3$Depression)
 dat3$Corticoid <- as.factor(dat3$Corticoid)
 
+
+#Need to:
+#Convert gender to 0, 1 -- currently 1 and 2 
+
 ####ESS SLEEP SCALE####
 #stepwise approach - take out predictor corresponding to largest p-value, refit model, and then repeat process
 library(ggplot2)
@@ -315,8 +319,7 @@ AIC(mymodel_PSGQBinary_all)
 AIC(mymodel_PSGQbinary_9)
 
 #plotting - how to do just 2 categorical in one plot ? is there way?  have separate graphs for now 
-plot(allEffects(mymodel_PSGQbinary_9))
-
+plot(allEffects(mymodel_PSGQbinary_9), main="Predicted Probabilities", ylab="PSQI Predicted Probabilities")
 
 
 
@@ -422,4 +425,4 @@ mypreds <- predict(mymodel_AISBinary_9, newdata = mynewdata2, type = "response")
 
 plot(age.vals,mypreds,type = "l",xlab = "Age (yrs)",ylab = "Predicted probabilities")
 
-plot(allEffects(mymodel_AISBinary_9)) #lower sleep scores with greater age, higher sleep scores with depression-state
+plot(allEffects(mymodel_AISBinary_9), main="Predicted Probabilities for AIS", ylab="Predicted Probabilities") #lower sleep scores with greater age, higher sleep scores with depression-state
