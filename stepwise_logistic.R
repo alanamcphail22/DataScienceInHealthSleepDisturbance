@@ -1,7 +1,5 @@
 
 ### Data cleaning
-
-
 library(dplyr)
 dat <- read.csv("project_data.csv")
 
@@ -35,105 +33,122 @@ dat3 <- dat3 %>%
   )
 
 
+#data into factors 
+dat3$Gender <- as.factor(dat3$Gender)
+dat3$Liver.Diagnosis <- as.factor(dat3$Liver.Diagnosis)
+dat3$Recurrence.of.disease <- as.factor(dat3$Recurrence.of.disease)
+dat3$Rejection.graft.dysfunction <- as.factor(dat3$Rejection.graft.dysfunction)
+dat3$Any.fibrosis <- as.factor(dat3$Any.fibrosis)
+dat3$Renal.Failure <- as.factor(dat3$Renal.Failure)
+dat3$Depression <- as.factor(dat3$Depression)
+dat3$Corticoid <- as.factor(dat3$Corticoid)
 
 ####ESS SLEEP SCALE####
 #stepwise approach - take out predictor corresponding to largest p-value, refit model, and then repeat process
 library(ggplot2)
 mymodel_essbinary_all <- glm(ESSBinary ~ 
                                Age + BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
-                               Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease + Renal.Failure+
+                               Any.fibrosis + Corticoid + Liver.Diagnosis + Recurrence.of.disease + Renal.Failure+
                                Depression, data = dat3, family = binomial) 
-
-#without renal failure
+summary(mymodel_essbinary_all)
+#without renal failure1
 mymodel_essbinary_1 <- glm(ESSBinary ~ 
                                Age + BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
                                Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease+
                                Depression, data = dat3, family = binomial) 
+summary(mymodel_essbinary_1)
+
+#without depression
+mymodel_essbinary_2 <- glm(ESSBinary ~ 
+                             Age + BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
+                             Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease
+                             , data = dat3, family = binomial) 
+summary(mymodel_essbinary_2)
 
 #without age
-mymodel_essbinary_2 <- glm(ESSBinary ~ 
-                               BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
-                               Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease+
-                               Depression, data = dat3, family = binomial) 
-
-
-#without rejection graft dysfunction
 mymodel_essbinary_3 <- glm(ESSBinary ~ 
-                               BMI + Time.from.transplant+ Gender +
-                               Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease+
-                               Depression, data = dat3, family = binomial) 
+                             BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
+                             Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease
+                           , data = dat3, family = binomial) 
+summary(mymodel_essbinary_3)
 
 
 #without fibrosis
 mymodel_essbinary_4 <- glm(ESSBinary ~ 
-                               BMI + Time.from.transplant+ Gender +
-                               Corticoid + Liver.Diagnosis + Recurrence.of.disease+
-                               Depression, data = dat3, family = binomial) 
+                             BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
+                             Corticoid + Liver.Diagnosis + Recurrence.of.disease
+                           , data = dat3, family = binomial) 
+summary(mymodel_essbinary_4)
 
+#without rejection
+mymodel_essbinary_5 <- glm(ESSBinary ~ 
+                             BMI + Time.from.transplant+ Gender +
+                             Corticoid + Liver.Diagnosis + Recurrence.of.disease
+                           , data = dat3, family = binomial) 
+summary(mymodel_essbinary_5)
+
+#without recurrence
+mymodel_essbinary_6 <- glm(ESSBinary ~ 
+                             BMI + Time.from.transplant+ Gender +
+                             Corticoid + Liver.Diagnosis
+                           , data = dat3, family = binomial) 
+summary(mymodel_essbinary_6)
 
 #without time from transplant
-mymodel_essbinary_5 <- glm(ESSBinary ~ 
-                               BMI + Gender +
-                               Corticoid + Liver.Diagnosis + Recurrence.of.disease+
-                               Depression, data = dat3, family = binomial) 
-
-
-#without depression
-mymodel_essbinary_6 <- glm(ESSBinary ~ 
-                               BMI + Gender +
-                               Corticoid + Liver.Diagnosis + Recurrence.of.disease
-                             , data = dat3, family = binomial) 
-
-#without liver diagnosis
 mymodel_essbinary_7 <- glm(ESSBinary ~ 
-                               BMI + Gender +
-                               Corticoid  + Recurrence.of.disease
-                             , data = dat3, family = binomial) 
-
-#without BMI
-mymodel_essbinary_8 <- glm(ESSBinary ~ 
-                               Gender +
-                               Corticoid  + Recurrence.of.disease
-                             , data = dat3, family = binomial) 
-
+                             BMI + Gender +
+                             Corticoid + Liver.Diagnosis
+                           , data = dat3, family = binomial) 
+summary(mymodel_essbinary_7)
 
 #without gender
-mymodel_essbinary_9 <- glm(ESSBinary ~ Corticoid  + Recurrence.of.disease
-                             , data = dat3, family = binomial)
+mymodel_essbinary_8 <- glm(ESSBinary ~ 
+                             BMI  +
+                             Corticoid + Liver.Diagnosis
+                           , data = dat3, family = binomial) 
+summary(mymodel_essbinary_8)
 
+#without liver
+mymodel_essbinary_9 <- glm(ESSBinary ~ 
+                             BMI  +
+                             Corticoid
+                           , data = dat3, family = binomial) 
+summary(mymodel_essbinary_9)
 
-#without recurrence of disease - final model with significant predictors 
-mymodel_essbinary_final <- glm(ESSBinary ~ Corticoid, data = dat3, family = binomial)
+#without bmi
+mymodel_essbinary_10 <- glm(ESSBinary ~ Corticoid, data = dat3, family = binomial) 
+summary(mymodel_essbinary_10)
 
 #final tests show that model with corticoid is significant
 summary(mymodel_essbinary_all)
 summary(mymodel_essbinary_final)
 AIC(mymodel_essbinary_all)
-AIC(mymodel_essbinary_final)
+AIC(mymodel_essbinary_10)
 
 #plotting for ESS 
 ## Lastly, let's  see what this logistic regression predicts, given
 ## that a patient is either female or male (and no other data about them).
+install.packages("effects")
+library(effects)
+plot(allEffects(mymodel_essbinary_10)) #shows those without corticoid use have 
+#lower sleep-scale measures vs those with use
 
-new_trial_data <- seq(min(dat3$Corticoid), max(dat3$Corticoid), 0.01)
-yv <- predict(mymodel_essbinary_final, list(Corticoid=new_trial_data), type="response")
-plot(xv,yv)
-
-
-
-
-
-
-
-
+#plot this way doesn't work:
+#corticoid_vals <- seq(min(dat3$Corticoid), max(dat3$Corticoid), 0.01)
+#mynewdata2 <- data.frame(Corticoid=corticoid_vals)
+#my_preds <- predict(mymodel_essbinary_10, list(Corticoid=mynewdata2), type="response")
+#plot(corticoid_vals,my_preds,type = "l",xlab = "Corticoid",ylab = "Predicted probabilities")
 
 
 
 
 
 
-###
-dat3$Berlin.Sleepiness.Scale
+
+
+
+
+#######################
 ####BERLIN SLEEP SCALE####
 #stepwise approach - take out predictor corresponding to largest p-value, refit model, and then repeat process
 mymodel_bssbinary_all <- glm(Berlin.Sleepiness.Scale ~ 
@@ -166,64 +181,50 @@ mymodel_bssbinary_3 <- glm(Berlin.Sleepiness.Scale ~ BMI + Time.from.transplant+
 
 summary(mymodel_bssbinary_3)
 
-#without gender
-mymodel_bssbinary_4 <- glm(Berlin.Sleepiness.Scale ~ 
-                             BMI + Time.from.transplant + Rejection.graft.dysfunction +
-                             Any.fibrosis+ Corticoid + Liver.Diagnosis + Recurrence.of.disease
-                           , data = dat3, family = binomial) 
+#without liver diagnosis
+mymodel_bssbinary_4 <- glm(Berlin.Sleepiness.Scale ~ BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction + Any.fibrosis+Corticoid + Recurrence.of.disease
+                           ,data = dat3, family = binomial) 
 
 summary(mymodel_bssbinary_4)
 
-#without liver diagnosis
-mymodel_bssbinary_5 <- glm(Berlin.Sleepiness.Scale ~ 
-                             BMI + Time.from.transplant + Rejection.graft.dysfunction +
-                             Any.fibrosis+Corticoid + Recurrence.of.disease
-                           , data = dat3, family = binomial) 
+
+#without gender 
+mymodel_bssbinary_5 <- glm(Berlin.Sleepiness.Scale ~ BMI + Time.from.transplant + Rejection.graft.dysfunction + Any.fibrosis+Corticoid + Recurrence.of.disease
+                           ,data = dat3, family = binomial) 
 
 summary(mymodel_bssbinary_5)
 
-#without time from transplant
-mymodel_bssbinary_6 <- glm(Berlin.Sleepiness.Scale ~ 
-                             BMI + Rejection.graft.dysfunction +
-                             Any.fibrosis+Corticoid + Recurrence.of.disease
-                           , data = dat3, family = binomial) 
+#without time 
+mymodel_bssbinary_6 <- glm(Berlin.Sleepiness.Scale ~ BMI + Rejection.graft.dysfunction + Any.fibrosis+Corticoid + Recurrence.of.disease
+                           ,data = dat3, family = binomial) 
 
 summary(mymodel_bssbinary_6)
 
-#without any fibrosis
-mymodel_bssbinary_7 <- glm(Berlin.Sleepiness.Scale ~ 
-                             BMI + Rejection.graft.dysfunction +
-                             +Corticoid + Recurrence.of.disease
-                           , data = dat3, family = binomial) 
+
+#without fibrosis 
+mymodel_bssbinary_7 <- glm(Berlin.Sleepiness.Scale ~ BMI + Rejection.graft.dysfunction +Corticoid + Recurrence.of.disease
+                           ,data = dat3, family = binomial) 
 
 summary(mymodel_bssbinary_7)
 
-#without BMI
-mymodel_bssbinary_8 <- glm(Berlin.Sleepiness.Scale ~ 
-                              Rejection.graft.dysfunction +
-                             Corticoid + Recurrence.of.disease
-                           , data = dat3, family = binomial) 
+
+#without corticoid 
+mymodel_bssbinary_8 <- glm(Berlin.Sleepiness.Scale ~ BMI + Rejection.graft.dysfunction + Recurrence.of.disease
+                           ,data = dat3, family = binomial) 
 
 summary(mymodel_bssbinary_8)
 
-#without corticoid
-mymodel_bssbinary_9 <- glm(Berlin.Sleepiness.Scale ~ 
-                             Rejection.graft.dysfunction 
-                            + Recurrence.of.disease
-                           , data = dat3, family = binomial) 
+#without rejection 
+mymodel_bssbinary_9 <- glm(Berlin.Sleepiness.Scale ~ BMI + Recurrence.of.disease
+                           ,data = dat3, family = binomial) 
 
 summary(mymodel_bssbinary_9)
 
-
-#without rejection - has only recurrence of disease 
-mymodel_bssbinary_10 <- glm(Berlin.Sleepiness.Scale ~ 
-                             Recurrence.of.disease
-                           , data = dat3, family = binomial) 
+#without recurrence - final model just has BMI information
+mymodel_bssbinary_10 <- glm(Berlin.Sleepiness.Scale ~ BMI,data = dat3, family = binomial) 
 
 summary(mymodel_bssbinary_10)
 
-#final tests show that model with Recurrence.of.disease is possible, but since p-value > 0.05, not ideal model.
-#should just report that there are shortcomings in this model 
 AIC(mymodel_bssbinary_10)
 AIC(mymodel_bssbinary_all)
 
@@ -231,9 +232,16 @@ AIC(mymodel_bssbinary_all)
 ## Lastly, let's  see what this logistic regression predicts, given
 ## that a patient's recurrence of disease is provided, and no other information
 
-new_trial_data <- seq(min(dat3$Recurrence.of.disease), max(dat3$Recurrence.of.disease), 0.01)
-yv <- predict(mymodel_bssbinary_10, list(Recurrence.of.disease=new_trial_data), type="response")
-plot(xv,yv)
+bmi_vals <- seq(min(dat3$BMI), max(dat3$BMI), 0.1)
+mynewdata_3 <- data.frame(BMI=bmi_vals)
+mypreds <- predict(mymodel_bssbinary_10, mynewdata_3, type="response")
+plot(bmi_vals,mypreds,type = "l",xlab = "BMI",ylab = "Predicted probabilities")
+##graph shows higher BMI associated with greater probability of greater sleep-score i.e. more difficulty
+
+
+
+
+
 
 
 
@@ -256,68 +264,65 @@ mymodel_PSGQbinary_1 <- glm(PSGQBinary ~
                              Depression, data = dat3, family = binomial) 
 summary(mymodel_PSGQbinary_1)
 
-#without renal failure 
+#without liver diagnosis
 mymodel_PSGQbinary_2 <- glm(PSGQBinary ~ 
                               Age + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
-                              Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease+
+                              Any.fibrosis+Corticoid + Recurrence.of.disease + Renal.Failure+
                               Depression, data = dat3, family = binomial) 
 summary(mymodel_PSGQbinary_2)
 
-
-#without fibrosis
+#without renal failure 
 mymodel_PSGQbinary_3 <- glm(PSGQBinary ~ 
                               Age + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
-                              Corticoid + Liver.Diagnosis + Recurrence.of.disease+
+                              Any.fibrosis+Corticoid + Recurrence.of.disease +
                               Depression, data = dat3, family = binomial) 
 summary(mymodel_PSGQbinary_3)
 
-#without time from transplant
+#without time from transplant 
 mymodel_PSGQbinary_4 <- glm(PSGQBinary ~ 
                               Age + Gender + Rejection.graft.dysfunction +
-                              Corticoid + Liver.Diagnosis + Recurrence.of.disease+
+                              Any.fibrosis+Corticoid + Recurrence.of.disease +
                               Depression, data = dat3, family = binomial) 
 summary(mymodel_PSGQbinary_4)
 
-#without liver diagnosis
+#without recurrence
 mymodel_PSGQbinary_5 <- glm(PSGQBinary ~ 
                               Age + Gender + Rejection.graft.dysfunction +
-                              Corticoid + Recurrence.of.disease+
+                              Any.fibrosis+Corticoid +
                               Depression, data = dat3, family = binomial) 
 summary(mymodel_PSGQbinary_5)
 
-#without rejection graft
+#without corticoid
 mymodel_PSGQbinary_6 <- glm(PSGQBinary ~ 
-                              Age + Gender  +
-                              Corticoid + Recurrence.of.disease+
+                              Age + Gender + Rejection.graft.dysfunction +
+                              Any.fibrosis +
                               Depression, data = dat3, family = binomial) 
 summary(mymodel_PSGQbinary_6)
 
-#without corticoid
+#without rejection
 mymodel_PSGQbinary_7 <- glm(PSGQBinary ~ 
-                              Age + Gender  +
-                               Recurrence.of.disease+
+                              Age + Gender +
+                              Any.fibrosis +
                               Depression, data = dat3, family = binomial) 
 summary(mymodel_PSGQbinary_7)
 
-
-#without recurrence
-mymodel_PSGQbinary_8 <- glm(PSGQBinary ~  Age + Gender + Depression, data = dat3, family = binomial) 
+#without fibrosis
+mymodel_PSGQbinary_8 <- glm(PSGQBinary ~ 
+                              Age + Gender + Depression, data = dat3, family = binomial) 
 summary(mymodel_PSGQbinary_8)
 
-#without age - final model has gender and depression 
-mymodel_PSGQbinary_final_model <- glm(PSGQBinary ~ Gender + Depression, data = dat3, family = binomial) 
-summary(mymodel_PSGQbinary_final_model)
+#without age - both depression and gender are important predictors for this model
+mymodel_PSGQbinary_9 <- glm(PSGQBinary ~ Gender + Depression, data = dat3, family = binomial) 
+summary(mymodel_PSGQbinary_9)
+
 
 #final tests show that model with Recurrence.of.disease is possible, but since p-value > 0.05, not ideal model.
 #should just report that there are shortcomings in this model 
 AIC(mymodel_PSGQBinary_all)
-AIC(mymodel_PSGQbinary_final_model)
+AIC(mymodel_PSGQbinary_9)
 
-#plotting - how to do just 2 categorical ???
-## Lastly, let's  see what this logistic regression predicts, given
-## that a patient's recurrence of disease is provided, and no other information
-
-#####
+#plotting - how to do just 2 categorical in one plot ? is there way?  have separate graphs for now 
+plot(allEffects(mymodel_PSGQbinary_9))
 
 
 
@@ -327,8 +332,17 @@ AIC(mymodel_PSGQbinary_final_model)
 
 
 
-dat3$AISBinary
 
+
+
+
+
+
+
+
+
+
+############################3
 ####AIS Binary SLEEP SCALE####
 #stepwise approach - take out predictor corresponding to largest p-value, refit model, and then repeat process
 mymodel_AISBinary_all <- glm(AISBinary ~ 
@@ -345,26 +359,24 @@ mymodel_AISBinary_1 <- glm(AISBinary ~
                                Depression, data = dat3, family = binomial) 
 summary(mymodel_AISBinary_1)
 
-
-
-#without BMI
+#without liver diagnosis
 mymodel_AISBinary_2 <- glm(AISBinary ~ 
-                             Age + Gender + Rejection.graft.dysfunction +
-                             Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease + Renal.Failure+
+                             Age + BMI + Gender + Rejection.graft.dysfunction +
+                             Any.fibrosis+Corticoid + Recurrence.of.disease + Renal.Failure+
                              Depression, data = dat3, family = binomial) 
 summary(mymodel_AISBinary_2)
 
-#without renal failure
+#without BMI
 mymodel_AISBinary_3 <- glm(AISBinary ~ 
                              Age + Gender + Rejection.graft.dysfunction +
-                             Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease +
+                             Any.fibrosis+Corticoid + Recurrence.of.disease + Renal.Failure+
                              Depression, data = dat3, family = binomial) 
 summary(mymodel_AISBinary_3)
 
-#without liver diagnosis
+#without renal failure 
 mymodel_AISBinary_4 <- glm(AISBinary ~ 
                              Age + Gender + Rejection.graft.dysfunction +
-                             Any.fibrosis+Corticoid  + Recurrence.of.disease +
+                             Any.fibrosis+Corticoid + Recurrence.of.disease+
                              Depression, data = dat3, family = binomial) 
 summary(mymodel_AISBinary_4)
 
@@ -377,42 +389,38 @@ summary(mymodel_AISBinary_5)
 
 #without fibrosis
 mymodel_AISBinary_6 <- glm(AISBinary ~ 
-                             Age + Gender + Rejection.graft.dysfunction +
-                             Corticoid +
+                             Age + Gender + Rejection.graft.dysfunction + Corticoid +
                              Depression, data = dat3, family = binomial) 
 summary(mymodel_AISBinary_6)
 
-#without rejection graft
+
+#without rejection
 mymodel_AISBinary_7 <- glm(AISBinary ~ 
-                             Age + Gender +
-                             Corticoid +
+                             Age + Gender + Corticoid +
                              Depression, data = dat3, family = binomial) 
 summary(mymodel_AISBinary_7)
 
-#without corticoid graft
+#without cortiocid
 mymodel_AISBinary_8 <- glm(AISBinary ~ 
-                             Age + Gender + Depression, data = dat3, family = binomial) 
+                             Age + Gender  +
+                             Depression, data = dat3, family = binomial) 
 summary(mymodel_AISBinary_8)
 
-#without gender -- final model has age and depression 
+#without gender - final predictors are age and depression
 mymodel_AISBinary_9 <- glm(AISBinary ~ 
-                             Age + Depression, data = dat3, family = binomial) 
+                             Age   +
+                             Depression, data = dat3, family = binomial) 
 summary(mymodel_AISBinary_9)
-
 
 #final tests show that model with Recurrence.of.disease is possible, but since p-value > 0.05, not ideal model.
 #should just report that there are shortcomings in this model 
 AIC(mymodel_AISBinary_9)
 AIC(mymodel_AISBinary_all)
 
-#plotting - how to do just 2 categorical ???
-## Lastly, let's  see what this logistic regression predicts, given
-## that a patient's recurrence of disease is provided, and no other information
-
 
 age.vals <- seq(from=min(dat3$Age), to=max(dat3$Age),by = 0.01)
 
-depression.mode <- (mean(as.numeric(dat3$Depression))) #finding mode 
+depression.mode <- names(which.max(table(dat3$Depression)))  #finding mode 
 
 mynewdata2 <- data.frame(Age=age.vals, Depression = rep(depression.mode, length(age.vals)))
 # let's take a look
@@ -420,3 +428,5 @@ mynewdata2
 mypreds <- predict(mymodel_AISBinary_9, newdata = mynewdata2, type = "response")
 
 plot(age.vals,mypreds,type = "l",xlab = "Age (yrs)",ylab = "Predicted probabilities")
+
+plot(allEffects(mymodel_AISBinary_9)) #lower sleep scores with greater age, higher sleep scores with depression-state
