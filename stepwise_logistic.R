@@ -126,11 +126,9 @@ AIC(mymodel_essbinary_all)
 AIC(mymodel_essbinary_10)
 
 #plotting for ESS 
-## Lastly, let's  see what this logistic regression predicts, given
-## that a patient is either female or male (and no other data about them).
 install.packages("effects")
 library(effects)
-plot(allEffects(mymodel_essbinary_10)) #shows those without corticoid use have 
+plot(allEffects(mymodel_essbinary_10), main="Predicted Probabilities for Epworth Sleepiness Scale", xlab="Corticosteroid Use", ylab="Predicted Probabilities") #shows those without corticoid use have 
 #lower sleep-scale measures vs those with use
 
 #plot this way doesn't work:
@@ -229,13 +227,11 @@ AIC(mymodel_bssbinary_10)
 AIC(mymodel_bssbinary_all)
 
 #plotting for ESS 
-## Lastly, let's  see what this logistic regression predicts, given
-## that a patient's recurrence of disease is provided, and no other information
 
 bmi_vals <- seq(min(dat3$BMI), max(dat3$BMI), 0.1)
 mynewdata_3 <- data.frame(BMI=bmi_vals)
 mypreds <- predict(mymodel_bssbinary_10, mynewdata_3, type="response")
-plot(bmi_vals,mypreds,type = "l",xlab = "BMI",ylab = "Predicted probabilities")
+plot(bmi_vals,mypreds,type = "l",xlab = "BMI",ylab = "Predicted probabilities", main="Predicted Probabilities for Berlin Sleepiness Scale")
 ##graph shows higher BMI associated with greater probability of greater sleep-score i.e. more difficulty
 
 
@@ -315,9 +311,6 @@ summary(mymodel_PSGQbinary_8)
 mymodel_PSGQbinary_9 <- glm(PSGQBinary ~ Gender + Depression, data = dat3, family = binomial) 
 summary(mymodel_PSGQbinary_9)
 
-
-#final tests show that model with Recurrence.of.disease is possible, but since p-value > 0.05, not ideal model.
-#should just report that there are shortcomings in this model 
 AIC(mymodel_PSGQBinary_all)
 AIC(mymodel_PSGQbinary_9)
 
@@ -412,8 +405,8 @@ mymodel_AISBinary_9 <- glm(AISBinary ~
                              Depression, data = dat3, family = binomial) 
 summary(mymodel_AISBinary_9)
 
-#final tests show that model with Recurrence.of.disease is possible, but since p-value > 0.05, not ideal model.
-#should just report that there are shortcomings in this model 
+
+##final tests
 AIC(mymodel_AISBinary_9)
 AIC(mymodel_AISBinary_all)
 
