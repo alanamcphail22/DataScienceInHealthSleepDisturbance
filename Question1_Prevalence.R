@@ -1,12 +1,10 @@
 #Question1
 
-
 ### Data cleaning
 
 
 library(dplyr)
 dat <- read.csv("project_data.csv")
-
 
 # Making variables binary
 dat2 <- dat %>%
@@ -47,32 +45,8 @@ dat3$Renal.Failure <- as.factor(dat3$Renal.Failure)
 dat3$Depression <- as.factor(dat3$Depression)
 dat3$Corticoid <- as.factor(dat3$Corticoid)
 
-# let's take a look
-mynewdata2
-mypreds <-
-  predict(mymodel2, newdata = mynewdata2, type = "response")
-
-plot(age.vals,
-     mypreds,
-     type = "l",
-     xlab = "Age (yrs)",
-     ylab = "Predicted probabilities")
-
-
-mymodel_2 <-
-  glm(
-    PSGQBinary ~ Age + Gender + BMI + Time.from.transplant + Liver.Diagnosis +
-      Recurrence.of.disease +
-      Rejection.graft.dysfunction + Any.fibrosis + Renal.Failure +
-      Depression + Corticoid ,
-    data = dat3,
-    family = binomial
-  )
-
-anova(mymodel, mymodel_2)
-
-
-#Prevalence for ESSBinary
+##Find a way to include them all in one table 
+#Prevalence for ESSBinary 
 dat3$ESSBinary %>% table() %>% prop.table()
 
 #Prevalence for PSGQBinary
@@ -81,38 +55,8 @@ dat3$PSGQBinary %>% table() %>% prop.table()
 #Prevalence for AISBinary
 dat3$AISBinary %>% table() %>% prop.table()
 
-#Prevalence for AISBinary
+  #Prevalence for Berlin Sleepiness Scale 
 dat3$Berlin.Sleepiness.Scale %>% table() %>% prop.table()
 attach(dat3)
 
 
-#BMI, Age, Time.Elapsed
-age_vals <- seq(from = min(dat3$Age),
-                to = max(dat3$Age),
-                by = 1)
-
-gender.mode <- names(which.max(table(dat3$Gender))) #finding mode
-Liver.Diagnosis.mode <-
-  names(which.max(table(dat3$Liver.Diagnosis)))
-Recurrence.of.disease.mode <-
-  names(which.max(table(dat3$Recurrence.of.disease)))
-Rejection.graft.dysfunction.mode <-
-  names(which.max(table(dat3$Rejection.graft.dysfunction)))
-Any.fibrosis.mode <- names(which.max(table(dat3$Any.fibrosis.mode)))
-Renal.Failure.mode <- names(which.max(table(dat3$Renal.Failure)))
-Depression.mode <- names(which.max(table(dat3$Depression)))
-Corticoid.mode <- names(which.max(table(dat3$Corticoid)))
-
-
-
-trial_data <- data.frame(
-  age = age_vals,
-  gender_mode = rep(dat3$gender.mode, length(age_vals)),
-  Liver.Diagnosis_mode = rep(dat3$Liver.Diagnosis.mode, length(age_vals)),
-  Recurrence.of.disease_mode = rep(dat3$Recurrence.of.disease.mode, length(age_vals)),
-  Rejection.graft.dysfunction_mode = rep(dat3$Rejection.graft.dysfunction.mode, length(age_vals)),
-  Any.fibrosis_mode = rep(dat3$Any.fibrosis.mode, length(age_vals)),
-  Renal.Failure_mode = rep(dat3$Renal.Failure.mode, length(age_vals)),
-  Depression_mode = rep(dat3$Depression.mode, length(age_vals)),
-  Corticoid_mode = rep(dat3$Corticoid.mode, length(age_vals))
-)
