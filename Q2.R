@@ -7,7 +7,7 @@ library(car)
 dat <- read.csv("project_data.csv")
 
 
-# Making variables binary 
+# Renaming variables and removing NA's 
 dat2 <- dat %>% 
   rename(ESS = Epworth.Sleepiness.Scale, PSGQ = Pittsburgh.Sleep.Quality.Index.Score, 
          AIS = Athens.Insomnia.Scale, BSS = Berlin.Sleepiness.Scale) %>%
