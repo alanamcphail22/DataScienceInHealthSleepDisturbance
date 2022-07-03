@@ -33,6 +33,7 @@ dat3 <- dat3 %>%
     !is.na(Corticoid)
   )
 
+
 #Converting categorical data into factors 
 dat3$Liver.Diagnosis <- as.factor(dat3$Liver.Diagnosis)
 dat3$Recurrence.of.disease <- as.factor(dat3$Recurrence.of.disease)
@@ -49,6 +50,11 @@ dat3 <- dat3 %>%
 
 #Converting remaining categorical data into factors 
 dat3$Gender <- as.factor(dat3$Gender)
+dat3$ESSBinary <- as.factor(dat3$ESSBinary)
+dat3$PSGQBinary <- as.factor(dat3$PSGQBinary)
+dat3$AISBinary <- as.factor(dat3$AISBinary)
+dat3$AISBinary <- as.factor(dat3$Berlin.Sleepiness.Scale)
+str(dat3)
 
 ####ESS SLEEP SCALE MODEL DEVELOPEMENT####
 #Step wise approach, in full model, predictor corresponding to largest p-value is removed, model is refitted and process is repeated
@@ -79,22 +85,24 @@ mymodel_essbinary_3 <- glm(ESSBinary ~
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_3)
 
-
-#Fibrosis is identified as predictor with largest p-value, and is removed
+#Recurrence is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_4 <- glm(ESSBinary ~ 
                              BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
-                             Corticoid + Liver.Diagnosis + Recurrence.of.disease
+                             Any.fibrosis+Corticoid + Liver.Diagnosis
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_4)
 
-#Rejection is identified as predictor with largest p-value, and is removed
+
+#Fibrosis is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_5 <- glm(ESSBinary ~ 
-                             BMI + Time.from.transplant+ Gender +
-                             Corticoid + Liver.Diagnosis + Recurrence.of.disease
+                             BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
+                             Corticoid + Liver.Diagnosis
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_5)
 
-#Recurrence of disease is identified as predictor with largest p-value, and is removed
+
+
+#Rejection graft is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_6 <- glm(ESSBinary ~ 
                              BMI + Time.from.transplant+ Gender +
                              Corticoid + Liver.Diagnosis
@@ -108,26 +116,26 @@ mymodel_essbinary_7 <- glm(ESSBinary ~
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_7)
 
-#Gender is identified as predictor with largest p-value, and is removed
+#Liver diagnosis is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_8 <- glm(ESSBinary ~ 
-                             BMI  +
-                             Corticoid + Liver.Diagnosis
+                             BMI + Gender +
+                             Corticoid
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_8)
 
-#Liver is identified as predictor with largest p-value, and is removed
+#BMI is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_9 <- glm(ESSBinary ~ 
-                             BMI  +
+                            Gender +
                              Corticoid
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_9)
 
-#BMI is identified as predictor with largest p-value, and is removed
-#Corticosteroid Presence is identified as remaining predictor with p-value < 0.05, and retained in model 
-mymodel_essbinary_10 <- glm(ESSBinary ~ Corticoid, data = dat3, family = binomial) 
-summary(mymodel_essbinary_10)
 
-summary(mymodel_essbinary_all)
+#Gender is identified as predictor with largest p-value, and is removed
+#Corticosteroid Presence is identified as remaining predictor with p-value < 0.05, and retained in model 
+mymodel_essbinary_10 <- glm(ESSBinary ~ Corticoid 
+                           , data = dat3, family = binomial) 
+summary(mymodel_essbinary_10)
 
 #Comparison of AIC for original-full model and model with Corticosteroid
 AIC(mymodel_essbinary_all)
