@@ -1,16 +1,17 @@
+###Data Transformation 
 
-### Data cleaning
+# Data cleaning
 library(dplyr)
+library(car)
 dat <- read.csv("project_data.csv")
 
-
 # Making variables binary
-dat2 <- dat %>%
+dat2 <- dat %>% 
   mutate(ESSBinary = ifelse(Epworth.Sleepiness.Scale > 10, 1, 0)) %>%
   mutate(PSGQBinary = ifelse(Pittsburgh.Sleep.Quality.Index.Score > 5, 1, 0)) %>%
   mutate(AISBinary = ifelse(Athens.Insomnia.Scale > 5, 1, 0))
 
-# Removing all NAs in those columns
+# Removing NAs in relevant columns
 dat3 <- dat2 %>%
   filter(
     !is.na(ESSBinary),
@@ -32,9 +33,7 @@ dat3 <- dat3 %>%
     !is.na(Corticoid)
   )
 
-
-#data into factors 
-dat3$Gender <- as.factor(dat3$Gender)
+#Converting categorical data into factors 
 dat3$Liver.Diagnosis <- as.factor(dat3$Liver.Diagnosis)
 dat3$Recurrence.of.disease <- as.factor(dat3$Recurrence.of.disease)
 dat3$Rejection.graft.dysfunction <- as.factor(dat3$Rejection.graft.dysfunction)
@@ -44,32 +43,36 @@ dat3$Depression <- as.factor(dat3$Depression)
 dat3$Corticoid <- as.factor(dat3$Corticoid)
 
 
-#Need to:
-#Convert gender to 0, 1 -- currently 1 and 2 
+# Converting gender to be coded as 0, 1 
+dat3 <- dat3 %>% 
+  mutate(Gender = ifelse(Gender >= 2, 1, 0))
 
-####ESS SLEEP SCALE####
-#stepwise approach - take out predictor corresponding to largest p-value, refit model, and then repeat process
-library(ggplot2)
+#Converting remaining categorical data into factors 
+dat3$Gender <- as.factor(dat3$Gender)
+
+####ESS SLEEP SCALE MODEL DEVELOPEMENT####
+#Step wise approach, in full model, predictor corresponding to largest p-value is removed, model is refitted and process is repeated
 mymodel_essbinary_all <- glm(ESSBinary ~ 
-                               Age + BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
+                               Age + BMI + Time.from.transplant + Gender + Rejection.graft.dysfunction +
                                Any.fibrosis + Corticoid + Liver.Diagnosis + Recurrence.of.disease + Renal.Failure+
                                Depression, data = dat3, family = binomial) 
 summary(mymodel_essbinary_all)
-#without renal failure1
+
+#Renal Failure is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_1 <- glm(ESSBinary ~ 
                                Age + BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
                                Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease+
                                Depression, data = dat3, family = binomial) 
 summary(mymodel_essbinary_1)
 
-#without depression
+#Depression is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_2 <- glm(ESSBinary ~ 
                              Age + BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
                              Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease
                              , data = dat3, family = binomial) 
 summary(mymodel_essbinary_2)
 
-#without age
+#Age is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_3 <- glm(ESSBinary ~ 
                              BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
                              Any.fibrosis+Corticoid + Liver.Diagnosis + Recurrence.of.disease
@@ -77,69 +80,80 @@ mymodel_essbinary_3 <- glm(ESSBinary ~
 summary(mymodel_essbinary_3)
 
 
-#without fibrosis
+#Fibrosis is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_4 <- glm(ESSBinary ~ 
                              BMI + Time.from.transplant+ Gender + Rejection.graft.dysfunction +
                              Corticoid + Liver.Diagnosis + Recurrence.of.disease
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_4)
 
-#without rejection
+#Rejection is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_5 <- glm(ESSBinary ~ 
                              BMI + Time.from.transplant+ Gender +
                              Corticoid + Liver.Diagnosis + Recurrence.of.disease
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_5)
 
-#without recurrence
+#Recurrence of disease is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_6 <- glm(ESSBinary ~ 
                              BMI + Time.from.transplant+ Gender +
                              Corticoid + Liver.Diagnosis
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_6)
 
-#without time from transplant
+#Time from transplant is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_7 <- glm(ESSBinary ~ 
                              BMI + Gender +
                              Corticoid + Liver.Diagnosis
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_7)
 
-#without gender
+#Gender is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_8 <- glm(ESSBinary ~ 
                              BMI  +
                              Corticoid + Liver.Diagnosis
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_8)
 
-#without liver
+#Liver is identified as predictor with largest p-value, and is removed
 mymodel_essbinary_9 <- glm(ESSBinary ~ 
                              BMI  +
                              Corticoid
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_9)
 
-#without bmi
+#BMI is identified as predictor with largest p-value, and is removed
+#Corticosteroid Presence is identified as remaining predictor with p-value < 0.05, and retained in model 
 mymodel_essbinary_10 <- glm(ESSBinary ~ Corticoid, data = dat3, family = binomial) 
 summary(mymodel_essbinary_10)
 
-#final tests show that model with corticoid is significant
 summary(mymodel_essbinary_all)
-summary(mymodel_essbinary_final)
+
+#Comparison of AIC for original-full model and model with Corticosteroid
 AIC(mymodel_essbinary_all)
 AIC(mymodel_essbinary_10)
 
+
+vif(mymodel_essbinary_all)
 #plotting for ESS 
 install.packages("effects")
 library(effects)
-plot(allEffects(mymodel_essbinary_10), main="Predicted Probabilities for Epworth Sleepiness Scale", xlab="Corticosteroid Use", ylab="Predicted Probabilities") #shows those without corticoid use have 
+plot(allEffects(mymodel_essbinary_10), main="Predicted Probabilities for Epworth Sleepiness Scale", xlab="Corticosteroid Use", ylab="Predicted Probabilities") 
+#shows those without corticoid use have 
 #lower sleep-scale measures vs those with use
 
 #plot this way doesn't work:
-#corticoid_vals <- seq(min(dat3$Corticoid), max(dat3$Corticoid), 0.01)
-#mynewdata2 <- data.frame(Corticoid=corticoid_vals)
-#my_preds <- predict(mymodel_essbinary_10, list(Corticoid=mynewdata2), type="response")
-#plot(corticoid_vals,my_preds,type = "l",xlab = "Corticoid",ylab = "Predicted probabilities")
+#var1 = ESSBinary
+#var2 = Corticoid
+#Data frame with hp in ascending order
+# Predicted_data <- data.frame(Corticoid=seq(min(dat3$Corticoid), max(dat3$Corticoid),len=100))
+# 
+# # Fill predicted values using regression model
+# Predicted_data$ESSBinary <- predict(mymodel_essbinary_10, Predicted_data, type="response")
+# 
+# # Plot Predicted data and original data points
+# plot(ESSBinary ~ Corticoid, data=dat3)
+# lines(ESSBinary ~ Corticoid, Predicted_data, lwd=2, col="green")
 
 
 
@@ -229,7 +243,7 @@ summary(mymodel_bssbinary_10)
 
 AIC(mymodel_bssbinary_10)
 AIC(mymodel_bssbinary_all)
-
+vif(mymodel_bssbinary_all)
 #plotting for ESS 
 
 bmi_vals <- seq(min(dat3$BMI), max(dat3$BMI), 0.1)
@@ -317,7 +331,7 @@ summary(mymodel_PSGQbinary_9)
 
 AIC(mymodel_PSGQBinary_all)
 AIC(mymodel_PSGQbinary_9)
-
+vif(mymodel_PSGQBinary_all)
 #plotting - how to do just 2 categorical in one plot ? is there way?  have separate graphs for now 
 plot(allEffects(mymodel_PSGQbinary_9), main="Predicted Probabilities", ylab="PSQI Predicted Probabilities")
 
@@ -413,7 +427,7 @@ summary(mymodel_AISBinary_9)
 AIC(mymodel_AISBinary_9)
 AIC(mymodel_AISBinary_all)
 
-
+vif(mymodel_AISBinary_all)
 age.vals <- seq(from=min(dat3$Age), to=max(dat3$Age),by = 0.01)
 
 depression.mode <- names(which.max(table(dat3$Depression)))  #finding mode 
