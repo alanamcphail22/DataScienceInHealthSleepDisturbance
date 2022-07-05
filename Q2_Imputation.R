@@ -94,130 +94,60 @@ PCS_null <- lm(SF36.PCS ~ 1, data = imputed.dataframe)
 
 # STEPWISE BACKWARD AIC for PCS
 PCS.step.back <- stepAIC(PCS,trace = T, direction = "backward", scope = list(upper=PCS, lower=PCS_null))
-summary(PCS.step.back)
+summary(PCS.step.back) # Full model is the best fit
 
+# VIF to check for colinearity
+vif(PCS.step.back)
+
+#Graphs for linear regression
+hist(resid(PCS.step.back))
+plot(fitted(PCS.step.back),resid(PCS.step.back))
+
+plot(imputed.dataframe$SF36.PCS,fitted(PCS.step.back))
+
+qqnorm(resid(PCS.step.back))
+qqline(resid(PCS.step.back), col=2)
 #######
-
-
-
-
-
-
-# Check if they are very colinear (predictors)
-# Even if they are separate instruments: each measures different aspect with sleep problems
-# Practical reasons as to why you might wanna remove some of them 
-# Identify the relationship between sleep disturbance and quality of life (physical and mental).
-# Multiple ways of analyzing this?
-
-####### Physical health ########
-
-# Complex model with all 4 sleep predictors
-PCS_1 <- lm(SF36.PCS ~ ESS + AIS + BSS, data = dat2)
-
-summary(PCS)
-hist(resid(PCS))
-plot(fitted(PCS),resid(PCS))
-
-plot(data_Q2$SF36.PCS,fitted(PCS))
-
-qqnorm(resid(PCS))
-qqline(resid(PCS), col=2)
-
-
-PCS_1 <- stepAIC(PCS,trace = F)
-summary(PCS_1)
-# Testing for collinearity using VIF: Guidance on reference levels:
-# 1 = not correlated.
-# Between 1 and 5 = moderately correlated.
-# Greater than 5 = highly correlated.
-
-# PCS: PSGQ and AIS are moderately correlated. We can remove them if u want. B
-# Future Note: down below when we do VIF testing of AIS and ESS they are not correlated. 
-# So I think we should keep the significant predictors and remove the insignificant ones.
-vif(PCS)
-
-
-
-# Simpler model with only ESS and AIS -- as BSS and PSGQ were not siginificant in complex model.
-PCS_simple <- lm(SF36.PCS ~ ESS + AIS, data = data_Q2)
-
-summary(PCS_simple)
-round(confint(PCS_simple), 2)
-
-hist(resid(PCS_simple))
-plot(fitted(PCS_simple),resid(PCS_simple))
-
-plot(data_Q2$SF36.PCS,fitted(PCS_simple))
-
-qqnorm(resid(PCS_simple))
-qqline(resid(PCS_simple), col=2)
-
-# Testing fro collinearity - VIF
-# AIS and ESS are pretty much not correlated - this model looks better.
-vif(PCS_simple)
-
-# ANOVA of Chisq goodness of fit. 
-anova(PCS, PCS_simple, test = "Chisq") # p > 0.05, null hypothesis cannot be rejected, can use simpler model.
-
-# Estimates of the predictors and their 95% CI
 
 
 ####### Mental health ########
 
-# Complex model with all 4 sleep predictors
-MCS <- lm(SF36.MCS ~ ESS + AIS + BSS, data = data_Q2)
+# stochastic regression -> improvement from the above method "norm.nob" -> added some error +noise
+data.lim.MCS <- dat2[, c("SF36.MCS", "ESS", "AIS","BSS")]
+imp_MCS <- mice(data.lim.MCS, method = "norm.nob", seed = 11,
+            m = 1, print = FALSE)
+xyplot(imp_MCS, SF36.MCS ~ ESS + AIS + BSS) # Imputed values for ozone are not always the same, it depends on solar.
 
+#Complete function extracts the imputed data 
+imputed.dataframe.MCS <- complete(imp_MCS)
+imputed.dataframe.MCS <- as.data.frame(imputed.dataframe.MCS)
+dim(imputed.dataframe.MCS)
+dim(dat2)
+
+
+# Running the model with imputed dataframe
+MCS <- lm(SF36.MCS ~ ESS + AIS + BSS, data = imputed.dataframe.MCS)
 summary(MCS)
-hist(resid(MCS))
-plot(fitted(MCS),resid(MCS))
 
-plot(data_Q2$SF36.MCS,fitted(MCS))
-
-qqnorm(resid(MCS))
-qqline(resid(MCS), col=2)
+# Is there a way to specifiy that there should be atleast 1 predictor but not specifying which one
+MCS_null <- lm(SF36.MCS ~ 1, data = imputed.dataframe.MCS)
 
 
-MCS.step.back <- stepAIC(MCS,trace = F)
-summary(MCS.step.back)
-# Testing for co-linearity using VIF - PSGQ and AIS are moderately correlated.
-vif(MCS)
+# STEPWISE BACKWARD AIC for PCS
+MCS.step.back <- stepAIC(MCS,trace = T, direction = "backward", scope = list(upper=MCS, lower=MCS_null))
+summary(MCS.step.back) # Full model is the best fit
+
+# VIF to check for colinearity
+vif(MCS.step.back)
+
+#Graphs for linear regression
+hist(resid(MCS.step.back))
+plot(fitted(MCS.step.back),resid(MCS.step.back))
+
+plot(imputed.dataframe.MCS$SF36.MCS,fitted(MCS.step.back))
+
+qqnorm(resid(MCS.step.back))
+qqline(resid(MCS.step.back), col=2)
 
 
-#Future note: For the simpler model, I dont think it is wise to use PSGQ and AIS as the predictors
-# Since they are moderately correlated.
 
-# Simpler model with only PSGQ  as BSS, ESS and AIS were not significant in complex model.
-MCS_simple <- lm(SF36.MCS ~ AIS, data = data_Q2)
-summary(MCS_simple)
-round(confint(MCS_simple), 2)
-
-summary(MCS_simple)
-hist(resid(MCS_simple))
-plot(fitted(MCS_simple),resid(MCS_simple))
-
-plot(data_Q2$SF36.MCS,fitted(MCS_simple))
-
-qqnorm(resid(MCS_simple))
-qqline(resid(MCS_simple), col=2)
-ggeffects::ggeffect(MCS_simple)
-
-
-# Testing for co-linearity using VIF - w/ PSGQ (cant do it cuz theres only 1 predictor lol) .
-vif(MCS_simple)
-
-
-# ANOVA of Chisq goodness of fit. 
-anova(MCS, MCS_simple, test = "Chisq") # p > 0.05, null hypothesis cannot be rejected, can use simpler model.
-###########
-
-MCS_1 <- lm(SF36.MCS ~ ESS + PSGQ + AIS, data = data_Q2)
-summary(MCS_1)
-anova(MCS, MCS_1)
-
-MCS_2 <- lm(SF36.MCS ~ PSGQ + AIS, data = data_Q2)
-summary(MCS_2)
-cor(data_Q2$AIS, data_Q2$PSGQ)
-
-
-######################################
-# DOING ANALYSIS WHILE KEEPING MISSINGNESS IN MIND.
