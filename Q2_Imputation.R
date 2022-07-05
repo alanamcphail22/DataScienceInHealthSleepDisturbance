@@ -96,6 +96,10 @@ PCS_null <- lm(SF36.PCS ~ 1, data = imputed.dataframe)
 PCS.step.back <- stepAIC(PCS,trace = T, direction = "backward", scope = list(upper=PCS, lower=PCS_null))
 summary(PCS.step.back) # Full model is the best fit
 
+#Confidence interval for PCS
+round(confint(PCS.step.back), 2)
+
+
 # VIF to check for colinearity
 vif(PCS.step.back)
 
@@ -107,6 +111,9 @@ plot(imputed.dataframe$SF36.PCS,fitted(PCS.step.back))
 
 qqnorm(resid(PCS.step.back))
 qqline(resid(PCS.step.back), col=2)
+
+cor(imputed.dataframe)
+
 #######
 
 
@@ -137,6 +144,9 @@ MCS_null <- lm(SF36.MCS ~ 1, data = imputed.dataframe.MCS)
 MCS.step.back <- stepAIC(MCS,trace = T, direction = "backward", scope = list(upper=MCS, lower=MCS_null))
 summary(MCS.step.back) #  model without BSS is the best fit
 
+# Including confience intervals 
+round(confint(MCS.step.back), 2)
+
 # VIF to check for colinearity
 vif(MCS.step.back)
 
@@ -149,5 +159,6 @@ plot(imputed.dataframe.MCS$SF36.MCS,fitted(MCS.step.back))
 qqnorm(resid(MCS.step.back))
 qqline(resid(MCS.step.back), col=2)
 
+cor(imputed.dataframe.MCS)
 
 
