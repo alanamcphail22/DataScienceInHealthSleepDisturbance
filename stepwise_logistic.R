@@ -448,3 +448,17 @@ mypreds <- predict(mymodel_AISBinary_9, newdata = mynewdata2, type = "response")
 plot(age.vals,mypreds,type = "l",xlab = "Age (yrs)",ylab = "Predicted probabilities")
 
 plot(allEffects(mymodel_AISBinary_9), main="Predicted Probabilities for AIS", ylab="Predicted Probabilities") #lower sleep scores with greater age, higher sleep scores with depression-state
+
+
+
+
+boxplot(dat3$AISBinary, dat3$Age + dat3$Depression)
+
+library(ggstatsplot)
+library(ggplot2)
+
+ggcoefstats(x = mymodel_essbinary_10) + 
+  labs(x = "Estimate", y = NULL, title = "ESS Binary Model")
+
+boxplot(mymodel_essbinary_10)
+

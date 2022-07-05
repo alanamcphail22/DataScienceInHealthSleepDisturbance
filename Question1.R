@@ -115,3 +115,16 @@ trial_data <- data.frame(
   Depression_mode = rep(dat3$Depression.mode, length(age_vals)),
   Corticoid_mode = rep(dat3$Corticoid.mode, length(age_vals))
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
