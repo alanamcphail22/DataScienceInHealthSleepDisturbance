@@ -135,7 +135,7 @@ MCS_null <- lm(SF36.MCS ~ 1, data = imputed.dataframe.MCS)
 
 # STEPWISE BACKWARD AIC for PCS
 MCS.step.back <- stepAIC(MCS,trace = T, direction = "backward", scope = list(upper=MCS, lower=MCS_null))
-summary(MCS.step.back) # Full model is the best fit
+summary(MCS.step.back) #  model without BSS is the best fit
 
 # VIF to check for colinearity
 vif(MCS.step.back)
