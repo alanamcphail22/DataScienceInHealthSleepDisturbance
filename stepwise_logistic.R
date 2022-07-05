@@ -1,12 +1,12 @@
-###Data Transformation 
-
-# Data cleaning
+# ###Data Transformation
+# 
+# # Data cleaning
 library(dplyr)
 library(car)
 dat <- read.csv("project_data.csv")
 
 # Making variables binary
-dat2 <- dat %>% 
+dat2 <- dat %>%
   mutate(ESSBinary = ifelse(Epworth.Sleepiness.Scale > 10, 1, 0)) %>%
   mutate(PSGQBinary = ifelse(Pittsburgh.Sleep.Quality.Index.Score > 5, 1, 0)) %>%
   mutate(AISBinary = ifelse(Athens.Insomnia.Scale > 5, 1, 0))
@@ -130,12 +130,17 @@ mymodel_essbinary_9 <- glm(ESSBinary ~
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_9)
 
-
+plot(mymodel_essbinary_9)
 #Gender is identified as predictor with largest p-value, and is removed
 #Corticosteroid Presence is identified as remaining predictor with p-value < 0.05, and retained in model 
 mymodel_essbinary_10 <- glm(ESSBinary ~ Corticoid 
                            , data = dat3, family = binomial) 
 summary(mymodel_essbinary_10)
+
+#Obtain Odds Ratio and CI for model 
+exp(mymodel_essbinary_10$coefficients)
+round(exp(confint(mymodel_essbinary_10)),2)
+
 
 #Comparison of AIC for original-full model and model with Corticosteroid
 AIC(mymodel_essbinary_all)
@@ -163,7 +168,9 @@ plot(allEffects(mymodel_essbinary_10), main="Predicted Probabilities for Epworth
 # plot(ESSBinary ~ Corticoid, data=dat3)
 # lines(ESSBinary ~ Corticoid, Predicted_data, lwd=2, col="green")
 
-
+#deviance residuals
+res <- residuals(mymodel_essbinary_10, type="deviance")
+plot(predict(mymodel_essbinary_10), res, )
 
 
 
