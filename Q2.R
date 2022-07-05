@@ -10,63 +10,98 @@ library(mice)
 dat <- read.csv("project_data.csv")
 dim(dat) #268 rows
 
-# Finding a pattern in missingnes
-
-
+#Sub-setting data frame for the variables we are looking into
 dat <- dat[c("Age", "Gender", "BMI","Time.from.transplant","Liver.Diagnosis", "Recurrence.of.disease",
              "Rejection.graft.dysfunction", "Any.fibrosis", "Renal.Failure", "Depression","Corticoid",
-             "Epworth.Sleepiness.Scale", "Athens.Insomnia.Scale", "Berlin.Sleepiness.Scale", "SF36.PCS", "SF36.MCS")]
+             "Epworth.Sleepiness.Scale", "Athens.Insomnia.Scale", "Berlin.Sleepiness.Scale",
+             "Pittsburgh.Sleep.Quality.Index.Score", "SF36.PCS", "SF36.MCS")]
 
-dat$Berlin.Sleepiness.Scale <- as.logical(dat$Berlin.Sleepiness.Scale)
-
-data_missing_ESS <- dat %>%
-  filter(is.na(Epworth.Sleepiness.Scale))
-
-data_missing_AIS <- dat %>%
-  filter(is.na(Athens.Insomnia.Scale))
-
-data_missing_BSS <- dat %>%
-  filter(is.na(Berlin.Sleepiness.Scale))
-
-# IMPUTATIONS FOR MISSING VALUES
-
-# more conveniently using mice
-# stochastic regression -> improvement from the above method "norm.nob" -> added some error +noise
-data.lim.PCS <- dat[, c("SF36.PCS", "Epworth.Sleepiness.Scale", "Athens.Insomnia.Scale","Berlin.Sleepiness.Scale")]
-imp <- mice(data.lim.PCS, method = "norm.nob", seed = 11,
-            m = 1, print = FALSE)
-xyplot(imp, SF36.PCS ~ Epworth.Sleepiness.Scale + Athens.Insomnia.Scale + Berlin.Sleepiness.Scale) # Imputed values for ozone are not always the same, it depends on solar.
-
-fit.stoch <- with(imp, lm(SF36.PCS ~ Epworth.Sleepiness.Scale + Athens.Insomnia.Scale + Berlin.Sleepiness.Scale))
-summary(pool(fit.stoch))
-
-# this is how we can extract the actual imputed dataset
-imputed.data.frame <- complete(imp, action = 1)
-
-
-
-# Renaming variables and removing NA's 
-# PSGQ NA: 85 <- more than 30% of data is missing (NA > 80)
-# AIS: 6
-# ESS: 17
-# BSS: 6
+# Renaming variables and counting the NA values 
+# PSGQ NA: 85 <- more than 30% of data is missing (NA > 80), can remove entire variable
+# AIS NA: 6
+# ESS NA: 17
+# BSS NA: 6
 apply(is.na(dat),2,sum)
-dat2 <- dat %>% 
+
+# Removing Pittsburgh.Sleep.Quality.Index.Score due to <30% NA values
+dat2 <- dat[c("Age", "Gender", "BMI","Time.from.transplant","Liver.Diagnosis", "Recurrence.of.disease",
+              "Rejection.graft.dysfunction", "Any.fibrosis", "Renal.Failure", "Depression","Corticoid",
+              "Epworth.Sleepiness.Scale", "Athens.Insomnia.Scale", "Berlin.Sleepiness.Scale",
+              "SF36.PCS", "SF36.MCS")]
+
+# Renaming predictors
+dat2 <- dat2 %>% 
   rename(ESS = Epworth.Sleepiness.Scale, 
          AIS = Athens.Insomnia.Scale, BSS = Berlin.Sleepiness.Scale) 
 
-# Filtering for the response and predictors we need (plus unique identifier)
-data_Q2 <- dat2[c("Subject","ESS", "AIS", "BSS", "SF36.PCS", "SF36.MCS")]
+
+
 
 # Changing BSS to a logical factor.
-data_Q2$BSS <- as.logical(data_Q2$BSS)
+dat2$BSS <- as.logical(dat2$BSS)
+dat2$SF36.PCS <- as.numeric(dat2$SF36.PCS)
+dat2$SF36.MCS <- as.numeric(dat2$SF36.MCS)
+dat2$ESS <- as.numeric(dat2$ESS)
+dat2$AIS <- as.numeric(dat2$AIS)
+
+
+#Checking the how the missing values relate to the other variables - all cases are MAR
+data_missing_ESS <- dat2 %>%
+  filter(is.na(ESS))
+View(data_missing_ESS)
+
+data_missing_AIS <- dat2 %>%
+  filter(is.na(AIS))
+View(data_missing_AIS)
+
+data_missing_BSS <- dat2 %>%
+  filter(is.na(BSS))
+View(data_missing_BSS)
+
 
 ########################################################
 
 # Q2: Building a multiple linear regression
-
 # Predictor: Sleep quality (all 4 measurements)
 # Response: MCS and PCS.
+
+
+# IMPUTATIONS FOR MISSING VALUES in PCS 
+
+# stochastic regression -> improvement from the above method "norm.nob" -> added some error +noise
+data.lim.PCS <- dat2[, c("SF36.PCS", "ESS", "AIS","BSS")]
+imp <- mice(data.lim.PCS, method = "norm.nob", seed = 11,
+            m = 1, print = FALSE)
+xyplot(imp, SF36.PCS ~ ESS + AIS + BSS) # Imputed values for ozone are not always the same, it depends on solar.
+
+fit.stoch <- with(imp, lm(SF36.PCS ~ ESS + AIS + BSS))
+summary(pool(fit.stoch))
+
+#Incorporates imputed data within the data.lim.PCS df
+imputed.dataframe <- complete(imp)
+dim(imputed.dataframe)
+dim(dat2)
+
+# Running the model with imputed dataframe
+PCS <- lm(SF36.PCS ~ ESS + AIS + BSS, data = imputed.dataframe)
+summary(PCS)
+
+# Is there a way to specifiy that there should be atleast 1 predictor but not specifying which one
+PCS_null <- lm(SF36.PCS ~ 1, data = imputed.dataframe)
+
+PCS_1 <- lm(SF36.PCS ~ ESS + AIS, data = imputed.dataframe)
+
+# STEPWISE BACKWARD AIC for PCS
+PCS.step.back <- stepAIC(PCS,trace = T, direction = "backward", scope = list(upper=PCS, lower=PCS_null))
+summary(PCS.step.back)
+
+AIC(PCS, PCS_1)
+#######
+
+
+
+
+
 
 # Check if they are very colinear (predictors)
 # Even if they are separate instruments: each measures different aspect with sleep problems
@@ -77,7 +112,7 @@ data_Q2$BSS <- as.logical(data_Q2$BSS)
 ####### Physical health ########
 
 # Complex model with all 4 sleep predictors
-PCS <- lm(SF36.PCS ~ ESS + AIS + BSS, data = data_Q2)
+PCS_1 <- lm(SF36.PCS ~ ESS + AIS + BSS, data = dat2)
 
 summary(PCS)
 hist(resid(PCS))
@@ -89,8 +124,8 @@ qqnorm(resid(PCS))
 qqline(resid(PCS), col=2)
 
 
-PCS.step.back <- stepAIC(PCS,trace = F)
-summary(PCS.step.back)
+PCS_1 <- stepAIC(PCS,trace = F)
+summary(PCS_1)
 # Testing for collinearity using VIF: Guidance on reference levels:
 # 1 = not correlated.
 # Between 1 and 5 = moderately correlated.
