@@ -1,5 +1,6 @@
-library(mice) 
+library(mice)  
 library(dplyr)
+library(tidyverse)
 library(ISLR)
 library(MASS)
 library(car) 
@@ -14,6 +15,7 @@ dat2 <- dat[, c("Epworth.Sleepiness.Scale", "Athens.Insomnia.Scale","Berlin.Slee
                 'BMI', 'Time.from.transplant', 'Gender', 'Rejection.graft.dysfunction',
                   'Any.fibrosis', 'Corticoid', 'Liver.Diagnosis', 'Recurrence.of.disease', 'Renal.Failure', 
                   'Depression')]
+
 imp <- mice(dat2, method = "norm.nob", seed = 11, m = 1, print = FALSE)
 xyplot(imp, Epworth.Sleepiness.Scale ~ Age + BMI + Time.from.transplant + Gender + Rejection.graft.dysfunction +
          Any.fibrosis + Corticoid + Liver.Diagnosis + Recurrence.of.disease + Renal.Failure+
@@ -33,6 +35,7 @@ dat3 <- imputed.data.frame %>%
   mutate(AISBinary = ifelse(Athens.Insomnia.Scale > 5, 1, 0)) %>% 
   mutate(Berlin.Sleepiness.Scale = ifelse(Berlin.Sleepiness.Scale > 0.5, 1, 0))
 
+
 # Converting 1-2 encoding as 0, 1 coding for improved interpretation 
 dat3 <- dat3 %>% 
   mutate(Gender = ifelse(Gender >= 2, 1, 0))
@@ -49,6 +52,10 @@ dat3$Gender <- as.factor(dat3$Gender)
 dat3$ESSBinary <- as.factor(dat3$ESSBinary)
 dat3$AISBinary <- as.factor(dat3$AISBinary)
 dat3$Berlin.Sleepiness.Scale <- as.factor(dat3$Berlin.Sleepiness.Scale)
+
+#remove these columns after:
+dat3$Epworth.Sleepiness.Scale <- as.factor(dat3$Epworth.Sleepiness.Scale)
+dat3$Athens.Insomnia.Scale <- as.factor(dat3$Athens.Insomnia.Scale)
 
 mymodel_essbinary_all <- glm(ESSBinary ~ 
                                Age + BMI + Time.from.transplant + Gender + Rejection.graft.dysfunction +
@@ -87,10 +94,15 @@ mymodel_berlinbinary_all <- glm(Berlin.Sleepiness.Scale ~
                                Age + BMI + Time.from.transplant + Gender + Rejection.graft.dysfunction +
                                Any.fibrosis + Corticoid + Liver.Diagnosis + Recurrence.of.disease + Renal.Failure+
                                Depression, data = dat3, family = binomial) 
-
+AIC(mymodel_berlinbinary_all)
 vif(mymodel_berlinbinary_all)
 berlin_final <- stepAIC(mymodel_berlinbinary_all,trace = F)
 summary(berlin_final)
+ggcoefstats(berlin_final)
+
+#Odds Ratio and CI for model 
+exp(berlin_final$coefficients)
+round(exp(confint(berlin_final)),2)
 
 #Prevalence for ESS 
 dat3$ESSBinary %>% table() %>% prop.table()
@@ -103,4 +115,23 @@ attach(dat3)
 dat3$AISBinary %>% table() %>% prop.table()
 
 
+##ASSUMPTIONS - logit linearly 
+# Select only numeric predictors
+probabilities <- predict(mymodel_essbinary_all, type = "response")
+predicted.classes <- ifelse(probabilities > 0.5, "pos", "neg")
+install.packages("broom")
+library(broom)
+dat3 %>% filter(abs(.std.resid) > 5)
 
+mydata <- dat3 %>% dplyr::select_if(is.numeric) 
+predictors <- colnames(mydata)
+# Bind the logit and tidying the data for plot
+mydata <- mydata %>%
+  mutate(logit = log(probabilities/(1-probabilities))) %>%
+  gather(key = "predictors", value = "predictor.value", -logit)
+
+ggplot(mydata, aes(logit, predictor.value))+
+  geom_point(size = 0.5, alpha = 0.5) +
+  geom_smooth(method = "loess") + 
+  theme_bw() + 
+  facet_wrap(~predictors, scales = "free_y")
