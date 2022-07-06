@@ -15,3 +15,4 @@ dat2 <- dat %>%
 dat3 <- dat2 %>%
   filter(!is.na(ESSBinary), !is.na(PSGQBinary), !is.na(AISBinary), !is.na(Berlin.Sleepiness.Scale))
 
+
