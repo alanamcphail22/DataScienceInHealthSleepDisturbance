@@ -72,7 +72,7 @@ View(data_missing_BSS)
 data.lim.PCS <- dat2[, c("SF36.PCS", "ESS", "AIS","BSS")]
 imp <- mice(data.lim.PCS, method = "norm.nob", seed = 11,
             m = 1, print = FALSE)
-xyplot(imp, SF36.PCS ~ ESS + AIS + BSS) # Imputed values for ozone are not always the same, it depends on solar.
+xyplot(imp, SF36.PCS ~ ESS + AIS + BSS) 
 
 fit.stoch <- with(imp, lm(SF36.PCS ~ ESS + AIS + BSS))
 summary(pool(fit.stoch))
@@ -84,11 +84,11 @@ dim(imputed.dataframe)
 dim(dat2)
 
 
-# Running the model with imputed dataframe
+# Running the model with imputed dataframe (full model)
 PCS <- lm(SF36.PCS ~ ESS + AIS + BSS, data = imputed.dataframe)
 summary(PCS)
 
-# Is there a way to specifiy that there should be atleast 1 predictor but not specifying which one
+# Null moel with 0 predictors
 PCS_null <- lm(SF36.PCS ~ 1, data = imputed.dataframe)
 
 
@@ -100,7 +100,7 @@ summary(PCS.step.back) # Full model is the best fit
 round(confint(PCS.step.back), 2)
 
 
-# VIF to check for colinearity
+# VIF to check for co linearity
 vif(PCS.step.back)
 
 #Graphs for linear regression
@@ -136,7 +136,7 @@ dim(dat2)
 MCS <- lm(SF36.MCS ~ ESS + AIS + BSS, data = imputed.dataframe.MCS)
 summary(MCS)
 
-# Is there a way to specifiy that there should be atleast 1 predictor but not specifying which one
+# NUll model with 0 predictors
 MCS_null <- lm(SF36.MCS ~ 1, data = imputed.dataframe.MCS)
 
 
@@ -160,5 +160,14 @@ qqnorm(resid(MCS.step.back))
 qqline(resid(MCS.step.back), col=2)
 
 cor(imputed.dataframe.MCS)
+
+####################################################
+
+#PCS plots
+avPlots(PCS.step.back, layout = c(2,2), main = "Relationship of physical health and Sleep disturbance")
+
+#MCS plots
+avPlots(MCS.step.back,  main = "Relationship of mental health and Sleep disturbance")
+
 
 
