@@ -5,7 +5,7 @@ library(MASS)
 library(car)
 library(lme4)
 library(ggstatsplot)
-
+ 
 dat <- read.csv("project_data.csv")
 #
 # more conveniently using mice
@@ -76,6 +76,11 @@ AIC(mymodel_aisbinary_all)
 ais_final <- stepAIC(mymodel_aisbinary_all,trace = F)
 summary(ais_final)
 ggcoefstats(ais_final)
+
+#Odds Ratio and CI for model 
+exp(ais_final$coefficients)
+round(exp(confint(ais_final)),2)
+
 
 ##BERLIN 
 mymodel_berlinbinary_all <- glm(Berlin.Sleepiness.Scale ~ 
