@@ -8,6 +8,7 @@ library(mice)
 
 # Loading dataset
 dat <- read.csv("project_data.csv")
+summary(dat)
 dim(dat) #268 rows
 
 #Sub-setting data frame for the variables we are looking into
@@ -37,7 +38,7 @@ dat2 <- dat2 %>%
 
 
 
-# Changing BSS to a logical factor.
+# Changing Variables to a appropriate type - BSS is logical
 dat2$BSS <- as.logical(dat2$BSS)
 dat2$SF36.PCS <- as.numeric(dat2$SF36.PCS)
 dat2$SF36.MCS <- as.numeric(dat2$SF36.MCS)
@@ -83,10 +84,20 @@ imputed.dataframe <- as.data.frame(imputed.dataframe)
 dim(imputed.dataframe)
 dim(dat2)
 
+# Changing Variables to a appropriate type - BSS is logical
+imputed.dataframe$BSS <- as.logical(imputed.dataframe$BSS)
+imputed.dataframe$SF36.PCS <- as.numeric(imputed.dataframe$SF36.PCS)
+imputed.dataframe$ESS <- as.numeric(imputed.dataframe$ESS)
+imputed.dataframe$AIS <- as.numeric(imputed.dataframe$AIS)
+
+
 
 # Running the model with imputed dataframe (full model)
 PCS <- lm(SF36.PCS ~ ESS + AIS + BSS, data = imputed.dataframe)
 summary(PCS)
+
+# VIF to check for colinearity
+vif(PCS)
 
 # Null moel with 0 predictors
 PCS_null <- lm(SF36.PCS ~ 1, data = imputed.dataframe)
@@ -105,6 +116,8 @@ vif(PCS.step.back)
 
 #Graphs for linear regression
 hist(resid(PCS.step.back))
+
+
 plot(fitted(PCS.step.back),resid(PCS.step.back))
 
 plot(imputed.dataframe$SF36.PCS,fitted(PCS.step.back))
@@ -131,20 +144,30 @@ imputed.dataframe.MCS <- as.data.frame(imputed.dataframe.MCS)
 dim(imputed.dataframe.MCS)
 dim(dat2)
 
+# Changing Variables to a appropriate type - BSS is logical
+imputed.dataframe.MCS$BSS <- as.logical(imputed.dataframe.MCS$BSS)
+imputed.dataframe.MCS$SF36.MCS <- as.numeric(imputed.dataframe.MCS$SF36.MCS)
+imputed.dataframe.MCS$ESS <- as.numeric(imputed.dataframe.MCS$ESS)
+imputed.dataframe.MCS$AIS <- as.numeric(imputed.dataframe.MCS$AIS)
+
+
 
 # Running the model with imputed dataframe
 MCS <- lm(SF36.MCS ~ ESS + AIS + BSS, data = imputed.dataframe.MCS)
 summary(MCS)
 
+# VIF to check for colinearity
+vif(MCS)
+
 # NUll model with 0 predictors
 MCS_null <- lm(SF36.MCS ~ 1, data = imputed.dataframe.MCS)
 
 
-# STEPWISE BACKWARD AIC for PCS
+# STEPWISE BACKWARD AIC for MCS
 MCS.step.back <- stepAIC(MCS,trace = T, direction = "backward", scope = list(upper=MCS, lower=MCS_null))
 summary(MCS.step.back) #  model without BSS is the best fit
 
-# Including confience intervals 
+# Including confidence intervals 
 round(confint(MCS.step.back), 2)
 
 # VIF to check for colinearity
@@ -169,5 +192,11 @@ avPlots(PCS.step.back, layout = c(2,2), main = "Relationship of physical health 
 #MCS plots
 avPlots(MCS.step.back,  main = "Relationship of mental health and Sleep disturbance")
 
+# Optional may not inlude.
+#Cohens f2 - PCS: Medium effect 
+R2.PCS <-0.2077
+f2.PCS <- R2.PCS/(1 - R2.PCS)
 
-
+#Cohens f2 - MCS: Large effect
+R2.MCS <-0.3041
+f2.MCS <- R2.MCS/(1 - R2.MCS)
