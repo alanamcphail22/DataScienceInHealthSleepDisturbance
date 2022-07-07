@@ -84,6 +84,16 @@ imputed.dataframe <- as.data.frame(imputed.dataframe)
 dim(imputed.dataframe)
 dim(dat2)
 
+# Making sure imputed points of BSS are either 1 or 0 and AIS and ESS dont have negative inputs
+imputed.dataframe <- imputed.dataframe %>%
+  mutate(BSS = ifelse(BSS > 1, 1, 0)) 
+
+imputed.dataframe$AIS[imputed.dataframe$AIS < 0] <- 0 
+imputed.dataframe$ESS[imputed.dataframe$ESS < 0] <-0
+
+
+
+
 # Changing Variables to a appropriate type - BSS is logical
 imputed.dataframe$BSS <- as.logical(imputed.dataframe$BSS)
 imputed.dataframe$SF36.PCS <- as.numeric(imputed.dataframe$SF36.PCS)
@@ -144,6 +154,14 @@ imputed.dataframe.MCS <- as.data.frame(imputed.dataframe.MCS)
 dim(imputed.dataframe.MCS)
 dim(dat2)
 
+# Making sure imputed points of BSS are either 1 or 0 and AIS and ESS dont have negative inputs
+imputed.dataframe <- imputed.dataframe %>%
+  mutate(BSS = ifelse(BSS > 1, 1, 0)) 
+
+imputed.dataframe$AIS[imputed.dataframe$AIS < 0] <- 0 
+imputed.dataframe$ESS[imputed.dataframe$ESS < 0] <-0
+
+
 # Changing Variables to a appropriate type - BSS is logical
 imputed.dataframe.MCS$BSS <- as.logical(imputed.dataframe.MCS$BSS)
 imputed.dataframe.MCS$SF36.MCS <- as.numeric(imputed.dataframe.MCS$SF36.MCS)
@@ -187,7 +205,7 @@ cor(imputed.dataframe.MCS)
 ####################################################
 
 #PCS plots
-avPlots(PCS.step.back, layout = c(2,2), main = "Relationship of physical health and Sleep disturbance")
+avPlots(PCS.step.back, layout = c(1,2), main = "Relationship of physical health and Sleep disturbance")
 
 #MCS plots
 avPlots(MCS.step.back,  main = "Relationship of mental health and Sleep disturbance")
