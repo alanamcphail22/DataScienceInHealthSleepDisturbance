@@ -3,7 +3,6 @@ library(dplyr)
 library(ISLR)
 library(MASS)
 library(car)
-install.packages("ggstatsplot")
 library(lme4)
 library(ggstatsplot)
 
