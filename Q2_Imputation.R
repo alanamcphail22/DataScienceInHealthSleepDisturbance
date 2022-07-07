@@ -6,7 +6,7 @@ library(MASS)
 library(mice)
 
 
-# Loading dataset
+# Loading data set
 dat <- read.csv("project_data.csv")
 summary(dat)
 dim(dat) #268 rows
@@ -63,20 +63,17 @@ View(data_missing_BSS)
 ########################################################
 
 # Q2: Building a multiple linear regression
-# Predictor: Sleep quality (all 4 measurements)
+# Tentative Predictors: Sleep quality (all 4 measurements)
 # Response: MCS and PCS.
 
 
 # IMPUTATIONS FOR MISSING VALUES in PCS 
 
-# stochastic regression -> improvement from the above method "norm.nob" -> added some error +noise
+# stochastic regression -> added some noise
 data.lim.PCS <- dat2[, c("SF36.PCS", "ESS", "AIS","BSS")]
 imp <- mice(data.lim.PCS, method = "norm.nob", seed = 11,
             m = 1, print = FALSE)
 xyplot(imp, SF36.PCS ~ ESS + AIS + BSS) 
-
-fit.stoch <- with(imp, lm(SF36.PCS ~ ESS + AIS + BSS))
-summary(pool(fit.stoch))
 
 #Complete function extracts the imputed data 
 imputed.dataframe <- complete(imp)
@@ -106,10 +103,10 @@ imputed.dataframe$AIS <- as.numeric(imputed.dataframe$AIS)
 PCS <- lm(SF36.PCS ~ ESS + AIS + BSS, data = imputed.dataframe)
 summary(PCS)
 
-# VIF to check for colinearity
+# VIF to check for colinearity - no colinearity of concern, all below 5
 vif(PCS)
 
-# Null moel with 0 predictors
+# Null model with 0 predictors
 PCS_null <- lm(SF36.PCS ~ 1, data = imputed.dataframe)
 
 
@@ -121,16 +118,13 @@ summary(PCS.step.back) #  model without BSS is the best fit
 round(confint(PCS.step.back), 2)
 
 
-# VIF to check for co linearity
+# VIF to check for co linearity again
 vif(PCS.step.back)
 
 #Graphs for linear regression
 hist(resid(PCS.step.back))
 
-
 plot(fitted(PCS.step.back),resid(PCS.step.back))
-
-plot(imputed.dataframe$SF36.PCS,fitted(PCS.step.back))
 
 qqnorm(resid(PCS.step.back))
 qqline(resid(PCS.step.back), col=2)
@@ -142,11 +136,11 @@ cor(imputed.dataframe)
 
 ####### Mental health ########
 
-# stochastic regression -> improvement from the above method "norm.nob" -> added some error +noise
+# stochastic regression -> added some noise
 data.lim.MCS <- dat2[, c("SF36.MCS", "ESS", "AIS","BSS")]
 imp_MCS <- mice(data.lim.MCS, method = "norm.nob", seed = 11,
             m = 1, print = FALSE)
-xyplot(imp_MCS, SF36.MCS ~ ESS + AIS + BSS) # Imputed values for ozone are not always the same, it depends on solar.
+xyplot(imp_MCS, SF36.MCS ~ ESS + AIS + BSS) 
 
 #Complete function extracts the imputed data 
 imputed.dataframe.MCS <- complete(imp_MCS)
@@ -169,15 +163,14 @@ imputed.dataframe.MCS$ESS <- as.numeric(imputed.dataframe.MCS$ESS)
 imputed.dataframe.MCS$AIS <- as.numeric(imputed.dataframe.MCS$AIS)
 
 
-
 # Running the model with imputed dataframe
 MCS <- lm(SF36.MCS ~ ESS + AIS + BSS, data = imputed.dataframe.MCS)
 summary(MCS)
 
-# VIF to check for colinearity
+# VIF to check for colinearity - all values below 5
 vif(MCS)
 
-# NUll model with 0 predictors
+# Null model with 0 predictors
 MCS_null <- lm(SF36.MCS ~ 1, data = imputed.dataframe.MCS)
 
 
@@ -195,14 +188,13 @@ vif(MCS.step.back)
 hist(resid(MCS.step.back))
 plot(fitted(MCS.step.back),resid(MCS.step.back))
 
-plot(imputed.dataframe.MCS$SF36.MCS,fitted(MCS.step.back))
-
 qqnorm(resid(MCS.step.back))
 qqline(resid(MCS.step.back), col=2)
 
 cor(imputed.dataframe.MCS)
 
 ####################################################
+# Added variable plots for models SF36.PCS and SF36.MCS
 
 #PCS plots
 avPlots(PCS.step.back, layout = c(1,2), main = "Relationship of Physical health and Sleep disturbance"
