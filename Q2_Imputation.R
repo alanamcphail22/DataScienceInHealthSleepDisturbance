@@ -115,7 +115,7 @@ PCS_null <- lm(SF36.PCS ~ 1, data = imputed.dataframe)
 
 # STEPWISE BACKWARD AIC for PCS
 PCS.step.back <- stepAIC(PCS,trace = T, direction = "backward", scope = list(upper=PCS, lower=PCS_null))
-summary(PCS.step.back) # Full model is the best fit
+summary(PCS.step.back) #  model without BSS is the best fit
 
 #Confidence interval for PCS
 round(confint(PCS.step.back), 2)
@@ -205,16 +205,13 @@ cor(imputed.dataframe.MCS)
 ####################################################
 
 #PCS plots
-avPlots(PCS.step.back, layout = c(1,2), main = "Relationship of physical health and Sleep disturbance")
+avPlots(PCS.step.back, layout = c(1,2), main = "Relationship of Physical health and Sleep disturbance"
+        , id = FALSE, xlim=c(0,26), xaxs = "i", )
+
+
 
 #MCS plots
-avPlots(MCS.step.back,  main = "Relationship of mental health and Sleep disturbance")
+avPlots(MCS.step.back, main = "Relationship of Mental health and Sleep disturbance", 
+        id = FALSE, xlim=c(0,26), xaxs = "i")
 
-# Optional may not inlude.
-#Cohens f2 - PCS: Medium effect 
-R2.PCS <-0.2077
-f2.PCS <- R2.PCS/(1 - R2.PCS)
 
-#Cohens f2 - MCS: Large effect
-R2.MCS <-0.3041
-f2.MCS <- R2.MCS/(1 - R2.MCS)
